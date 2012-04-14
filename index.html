@@ -1,0 +1,917 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <script src="http://yandex.st/highlightjs/6.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="http://yandex.st/highlightjs/6.0/styles/github.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700|Droid+Serif:400,400italic|Inconsolata' rel='stylesheet'>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <title>Coroutine Tutorial</title>
+</head>
+<style>
+    body {
+        font: 13px/20px "Droid Sans",Arial,"Helvetica Neue","Lucida Grande",sans-serif;
+
+        color: #4C4C4C;
+        background-color: #E2E5EE;
+        margin-left: 0px;
+        margin-top: 5px;
+    }
+
+    .toc {
+        left: 0px;
+        top: 5px;
+        position: fixed;
+        float: left;
+        width: 150px;
+
+        background-color: #FAFBFC;
+        border: 1px solid #FAFBFC;
+
+        -webkit-border-top-right-radius: 10px;
+        -webkit-border-bottom-right-radius: 10px;
+        -moz-border-radius-topright: 10px;
+        -moz-border-radius-bottomright: 10px;
+
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+
+        padding-left: 5px;
+        height: 100%;
+    }
+
+    .toc ul {
+        margin: 0px;
+        padding: 0px;
+        list-style-type: none;
+    }
+
+    .toc ul ul {
+        font-size: 80%;
+        padding-left: 5px;
+    }
+
+    #content {
+        max-width: 960px;
+        margin-left: 160px;
+        padding: 10px;
+        border: 1px solid #FAFBFC;
+
+        background-color: #FAFBFC;
+
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+       
+        -webkit-box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.5);
+        -moz-box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.5);
+        box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.5);
+    }
+
+    a {
+        color: inherit;
+    }
+
+    pre {
+        border: 1px solid #ccc;
+        background-color: ghostWhite;
+        font: 15px/19px Inconsolata,"Lucida Console",Terminal,"Courier New",Courier;
+
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        padding: 5px;
+    }
+
+    p code {
+        font-family: monospace;
+        border-bottom: 1px dashed #ccc;
+
+    }
+
+    .label { 
+        display: block;
+        margin-bottom: 0px;
+        padding: 0px;
+        font-family: sans;
+        font-weight: bold;
+        width: 200px;
+        padding: 0.5em;
+    }
+
+    .author {
+        text-align: center;
+    }
+
+    .email {
+        text-align: center;
+        font-size: 10pt;
+    }
+
+
+    h1 {
+        text-align: center;
+        padding-bottom: 5px;
+    }
+
+    h2 {
+        padding-bottom: 10px;
+    }
+
+    .blue {
+        color: #61A598;
+    }
+</style>
+<body>
+<div id="content">
+
+<header>
+    <h1><span class="blue">Coroutines</span> For the Working Python Developer</h1>
+    <h3 class="author">
+        <a href="http://www.stephendiehl.com">Stephen Diehl</a>
+    </h3>
+</header>
+
+<div class="toc">
+<ul>
+<li><a href="#core">Core</a></li>
+<li><a href="#comprehensions">Comprehensions</a><ul>
+<li><a href="#list-comprehensions">List Comprehensions</a><ul>
+<li><a href="#guarded-comprehensions">Guarded comprehensions</a></li>
+<li><a href="#compound-comprehensions">Compound Comprehensions.</a></li>
+<li><a href="#side-effectful-comprehension">Side effectful comprehension.</a></li>
+</ul>
+</li>
+<li><a href="#dictionary-comprehensions">Dictionary Comprehensions</a></li>
+<li><a href="#set-comprehensions">Set Comprehensions</a></li>
+</ul>
+</li>
+<li><a href="#iterators">Iterators</a><ul>
+<li><a href="#iter">iter</a></li>
+<li><a href="#custom-iterables">Custom Iterables</a></li>
+<li><a href="#sortable-iterables">Sortable Iterables</a></li>
+<li><a href="#callable-iterators">Callable Iterators</a></li>
+<li><a href="#the-many-flavors-of-iterators">The Many Flavors of Iterators</a></li>
+<li><a href="#enumerate">Enumerate</a></li>
+</ul>
+</li>
+<li><a href="#generators">Generators</a><ul>
+<li><a href="#generator-schedules-1">Generator Schedules (1)</a></li>
+<li><a href="#forcing-a-generator">Forcing a Generator</a></li>
+<li><a href="#generator-expressions">Generator Expressions</a></li>
+<li><a href="#concurrent-list-comprehensions">Concurrent List Comprehensions</a></li>
+<li><a href="#itertools">Itertools</a></li>
+<li><a href="#generator-schedules-2">Generator Schedules (2)</a></li>
+<li><a href="#context-managers">Context Managers</a></li>
+<li><a href="#generator-internals">Generator Internals</a></li>
+</ul>
+</li>
+<li><a href="#coroutines">Coroutines</a><ul>
+<li><a href="#send">send</a></li>
+<li><a href="#next">next</a></li>
+<li><a href="#throw">throw</a></li>
+<li><a href="#close">close</a></li>
+<li><a href="#trampoline-scheduler">Trampoline Scheduler</a></li>
+<li><a href="#pep-380">Pep 380</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<h1 id="core">Core</h1>
+<p>Generators and coroutines are a some of the most powerful and
+often misunderstood structures in modern Python. Even though both
+have been around since Python 2.5, there is very little
+good information on their advanced usage.</p>
+<h1 id="comprehensions">Comprehensions</h1>
+<p>Lets do a quick course in comprehensions, since these will be
+constantly in the examples for iterators, generators and
+coroutines.</p>
+<h2 id="list-comprehensions">List Comprehensions</h2>
+<p>List comprehensions are powerful. Rather than discuss them in
+detail, I'll just give a few examples and assume you're familiar
+with them.</p>
+<h3 id="guarded-comprehensions">Guarded comprehensions</h3>
+<p>List comprehensions can restrict their output by adding guards on
+to their end. These can contain arbitrarily complex logic.</p>
+<pre><code class="python">print([a for a in xrange(8) if a &gt; 3])
+print([a for a in xrange(8) if a &gt; 3 and a != 4])
+</pre>
+
+<p></code>
+<pre><code class="python">
+[4, 5, 6, 7]
+[5, 6, 7]
+</pre></code></p>
+<h3 id="compound-comprehensions">Compound Comprehensions.</h3>
+<p>List comprehensions can compounded to traverse multiple
+iterators. This generally considered bad practice as it can
+produce very complex code.</p>
+<pre><code class="python">combinations = list([
+    x + y
+    for x in xrange(5)
+    for y in xrange(5)
+])
+print(combinations)
+</pre>
+
+<p></code>
+<pre><code class="python">
+[0, 1, 2, 3, 4, 1, 2, 3, 4, 5, 2, 3, 4, 5, 6, 3, 4, 5, 6, 7, 4, 5, 6, 7, 8]
+</pre></code></p>
+<p>The one exception is if you're working with matrices or other
+multi-index data structures.</p>
+<pre><code class="python">matrix = [
+    [1 , 2  , 3  , 4]  ,
+    [5 , 6  , 7  , 8]  ,
+    [9 , 10 , 11 , 12] ,
+]
+print( [[row[i] for row in matrix] for i in range(4)] )
+</pre>
+
+<p></code>
+<pre><code class="python">
+[[1, 5, 9], [2, 6, 10], [3, 7, 11], [4, 8, 12]]
+</pre></code></p>
+<h3 id="side-effectful-comprehension">Side effectful comprehension.</h3>
+<p>Comprehensions can also execute arbitrary side effects anywhere
+in their construction. Again, also considered bad practice in
+most sane scenarios.</p>
+<pre><code class="python">lst = []
+[lst.append(val) for val in [1,2,3]]
+print(lst)
+</pre>
+
+<p></code>
+<pre><code class="python">
+[1, 2, 3]
+</pre></code></p>
+<h2 id="dictionary-comprehensions">Dictionary Comprehensions</h2>
+<pre><code class="python">dct = { a : b for a, b in [('foo', 'bar'), ('fizz', 'pop')] }
+print( dct )
+</pre>
+
+<p></code>
+<pre><code class="python">
+{'foo': 'bar', 'fizz': 'pop'}
+</pre></code></p>
+<h2 id="set-comprehensions">Set Comprehensions</h2>
+<p>In Python 2.7+ there are also exist set comprehensions
+comprehensions.</p>
+<pre><code class="python">print({a for a in [1,1,2,3]})
+</pre>
+
+<p></code>
+<pre><code class="python">
+set([1, 2, 3])
+</pre></code></p>
+<h1 id="iterators">Iterators</h1>
+<p>An iterator is something that can, well be iterated over. Many
+operations can be phrased in the language of iteration and many
+Python builtins consume iterables as their primary arguments. Its
+a very usefull pattern and is used constantly throughout all of
+Python.</p>
+<p>Many Python builtins are iterable. For example:</p>
+<pre><code class="python">
+for element in [3.141, 2.718, 2.685]:
+    print(element)
+
+for letter in "Python":
+    print(letter)
+
+for key in {'foo': 1, 'bar': 2}:
+    print(key)
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+3.141
+2.718
+2.685
+P
+y
+t
+h
+o
+n
+foo
+bar
+</pre></code></p>
+<p>Iterators are an interface based around two methods
+<code>__iter__</code> and <code>next</code>.  A <code>next</code> method either returns a
+value or raises a Python built-in <code>StopIteration</code> exception.
+Once an iterator has been consumed it is consumed permanently. It
+should return <code>StopIteration</code> for every call thereafter.</p>
+<pre><code class="python">
+it = iter([1,2,3])
+
+try:
+    print( it.next() )
+    print( it.next() )
+    print( it.next() )
+    print( it.next() )
+except StopIteration:
+    print('done')
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+1
+2
+3
+done
+</pre></code></p>
+<h2 id="iter"><code>iter</code></h2>
+<p>The builtin function <code>iter</code> is the prefix form of
+<code>obj.__iter__()</code>. It returns the interable interface of the object
+if it exists.</p>
+<p>This function is implicitly invoked in quite a few language
+constructs. For example placing the iteraable as the operand in a
+for loop implicitly invokes <code>iter</code>. In this example
+<code>internal</code> is the equivelant code that Python is doing behind
+the scenes for both <code>forloop</code> and <code>comprehension</code>.</p>
+<pre><code class="python">
+f = lambda x: x
+obj = [1,2,3]
+
+def forloop():
+    results = []
+    for x in obj:
+        results += [f(x)]
+    return results
+
+def comprehension():
+    return [f(x) for x in obj]
+
+def internal():
+    results = []
+
+    it = obj.__iter__()
+    while True:
+        try:
+            results += [f( it.next() )]
+        except StopIteration:
+            break
+    return results
+
+print( forloop() == comprehension() == internal() )
+</pre>
+
+<p></code>
+<pre><code class="python">
+True
+</pre></code></p>
+<h2 id="custom-iterables">Custom Iterables</h2>
+<p>Of course, one is not limited to the builtin iterables, you can
+easily define your own.</p>
+<p>It is common to refer to a object that returns itself ( i.e. <code>self</code> )
+as an <strong>iterator</strong>, it must also define a <code>next</code>. While a 
+object that returns anything else as being <strong>iterable</strong>, it need
+not necessarily define a <code>next</code> method.</p>
+<pre><code class="python">
+class IteratorExample(object):
+
+    def __init__(self, n):
+        self.source = [n**2 for n in range(n)]
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def next(self):
+        if self.i &gt;= len(self.source):
+            raise StopIteration
+        else:
+            value = self.source[self.i]
+            self.i += 1
+            return value
+
+class IterableExample(object):
+
+    def __init__(self, n):
+        self.source = [n % 2 for n in range(n)]
+
+    def __iter__(self):
+        # Uses a listiterator
+        return iter(self.source)
+
+a = IterableExample(5)
+b = IteratorExample(5)
+
+print(iter(a))
+print(iter(b))
+
+print([x for x in a])
+print([x for x in b])
+
+# You get many operations for free!
+print(3 in a)
+print(filter(lambda x: x&gt;3, b))
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+&lt;listiterator object at 0x1975c90&gt;
+&lt;IteratorExample object at 0x1975c10&gt;
+[0, 1, 0, 1, 0]
+[0, 1, 4, 9, 16]
+False
+[4, 9, 16]
+</pre></code></p>
+<h2 id="sortable-iterables">Sortable Iterables</h2>
+<p>Building sortable objects is a task that shows up enough that it
+is worth discussing. For a thorough discussion of orderings see 
+<a href="http://matt.might.net/articles/partial-orders/">Order Theory for Computer
+Scientists</a>. What
+we will construct is a <strong>total-ordering</strong>.</p>
+<pre><code class="python">from functools import total_ordering
+
+@total_ordering
+class Age:
+
+    def __init__(self, age):
+        self.year, self.interval = age.split()
+
+    def __eq__(self, other):
+        return(
+            self.year     == other.year and
+            self.interval == other.interval
+        )
+
+    def __lt__(self, other):
+        if self.interval == other.interval:
+            return self.year &lt; other.year
+        else:
+            if self.interval == 'BC' and other.interval == 'AD':
+                return True
+            else:
+                return False
+
+    def __repr__(self):
+        return ' '.join([self.year, self.interval])
+
+stoneage      = Age('2000 BC')
+bronzeage     = Age('600 BC')
+enlightenment = Age('1800 AD')
+
+ages = [stoneage , enlightenment, bronzeage ]
+
+print( sorted(ages) )
+</pre>
+
+<p></code>
+<pre><code class="python">
+[2000 BC, 600 BC, 1800 AD]
+</pre></code></p>
+<h2 id="callable-iterators">Callable Iterators</h2>
+<p>The little known other syntax for <code>iter</code> takes two arguments, a
+callable and a sentinel. The callable is called until sentinel
+it equals the sentinel. This a <code>callable-iterator</code>.</p>
+<pre><code class="python">
+count = 0
+
+def counter():
+    global count
+    count += 1
+    return count
+
+it = iter(counter, 5)
+print(type(it))
+print(list(it))
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+&lt;type 'callable-iterator'&gt;
+[1, 2, 3, 4]
+</pre></code></p>
+<p>In practice this is rarely used, but is sometimes usefull for
+reading files and doing other IO style iterations.</p>
+<pre><code class="python">
+# Read from file until we reach EOF
+fd = open('/proc/sys/kernel/version')
+lines = iter(fd.readline, '')
+print(list(lines))
+
+# Read input from the user until we get a done message
+iter(raw_input, 'done')
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+['#1 SMP PREEMPT Sat Jul 9 14:57:41 CEST 2011\n']
+</pre></code></p>
+<h2 id="the-many-flavors-of-iterators">The Many Flavors of Iterators</h2>
+<pre><code class="python">def typeof(obj):
+    print(type(obj))
+
+typeof(iter(xrange(5)))
+typeof(iter(set([1,2,3])))
+typeof(iter([1,2,3]))
+typeof(iter({'foo': 'bar'}))
+typeof(iter((1,2,3)))
+
+# The very important empty iterator
+iter([])
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+&lt;type 'rangeiterator'&gt;
+&lt;type 'setiterator'&gt;
+&lt;type 'listiterator'&gt;
+&lt;type 'dictionary-keyiterator'&gt;
+&lt;type 'tupleiterator'&gt;
+</pre></code></p>
+<h2 id="enumerate">Enumerate</h2>
+<p>A very usefull function is the builtin enumerate, which can
+consume an interable and assign a index to each element.</p>
+<pre><code class="python">lst = ['a', 'b', 'c']
+
+print( [a for a in enumerate(lst)] )
+
+for index, value in enumerate(lst):
+    print(index, value)
+</pre>
+
+<p></code>
+<pre><code class="python">
+[(0, 'a'), (1, 'b'), (2, 'c')]
+0 a
+1 b
+2 c
+</pre></code></p>
+<h1 id="generators">Generators</h1>
+<p>There are two points defining characteristics of generators,
+their <strong>schedule</strong> and their <strong>values</strong>. Both are controlled by
+the keyword <code>yield</code>.  Ostensibly a generator is a function that
+when started will produce a scheduled sequence of values which
+can be lazily evaluated.</p>
+<p>The <code>yield</code> is often confusing to newcomers because it does two
+actions, it suspends execution of the generator and
+simultaneously returns a value. When the generator is invoked
+again it resumes execution. There is also no restriction on the
+number of yield statements in a generator, in this sense they are
+analogous to a the <code>return</code>, but this comparison is somewhat
+misleading because they are fundamentally different actions.</p>
+<p>A generator is special case of the more general type of
+structures known as asymmetric coroutines.  The distinction
+between a coroutine and a generator is that a coroutine can
+accept further arguments after it has been invoked, whereas a
+generator cannot. We'll cover these later. For now, here's a
+simple example:</p>
+<pre><code class="python">def generator():
+    yield 'a'
+    yield 'b'
+    yield 'c'
+
+for x in generator():
+    print(x)
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+a
+b
+c
+</pre></code></p>
+<h2 id="generator-schedules-1">Generator Schedules (1)</h2>
+<p>Lets take a deeper look inside a timed schedule. In this example
+we see that the generator "returns" its results on a 0.1 second
+interval. The iterator, in turn, returns its results in one large
+lump at 1 second ( <code>10 x 0.1s</code> )s``.</p>
+<pre><code class="python">import time
+from timeit import timeit
+from itertools import izip
+
+def show_schedule(stream):
+    tic = time.time()
+    stic = time.time()
+
+    print('%5s  %5s  %2s ' % ('time', 'dt', 'i'))
+    for x in stream():
+        toc = time.time()
+        print('%5.2f  %5.2f  %2s ' % (toc-stic, toc-tic, x))
+        tic = toc
+
+def iterator():
+    result = []
+    for i in range(10):
+        time.sleep(0.1)
+        result.append(i)
+    return iter(result)
+
+def generator():
+    for i in range(10):
+        time.sleep(0.1)
+        yield i
+
+print('-- Generator --')
+show_schedule( generator )
+
+print('-- Iterator -- ')
+show_schedule( iterator )
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+-- Generator --
+ time     dt   i 
+ 0.10   0.10   0 
+ 0.20   0.10   1 
+ 0.30   0.10   2 
+ 0.40   0.10   3 
+ 0.50   0.10   4 
+ 0.60   0.10   5 
+ 0.70   0.10   6 
+ 0.80   0.10   7 
+ 0.90   0.10   8 
+ 1.00   0.10   9 
+-- Iterator -- 
+ time     dt   i 
+ 1.00   1.00   0 
+ 1.00   0.00   1 
+ 1.00   0.00   2 
+ 1.00   0.00   3 
+ 1.00   0.00   4 
+ 1.00   0.00   5 
+ 1.00   0.00   6 
+ 1.00   0.00   7 
+ 1.00   0.00   8 
+ 1.00   0.00   9 
+</pre></code></p>
+<h2 id="forcing-a-generator">Forcing a Generator</h2>
+<p><strong>Forcing</strong> a generator causes it to be consumed in its entirety at a
+given time. This is is potentially a blocking operation.</p>
+<p>One of the most common ways of forcing a generator is to cast it
+into a list or list comprehension.</p>
+<pre><code class="python">def generator():
+    yield 1
+    yield 2
+
+forced = [a for a in generator()]
+forced = list(generator())
+notforced = (a for a in generator())
+
+print(type(forced))
+print(type(notforced))
+</pre>
+
+<p></code>
+<pre><code class="python">
+&lt;type 'list'&gt;
+&lt;type 'generator'&gt;
+</pre></code></p>
+<pre><code class="python">from timeit import timeit
+
+def blocker():
+    yield
+    time.sleep(1)
+    yield
+
+# The blocking in ``blocker`` bubbles up to this context when
+# consumer the generator.
+forced_consumer = lambda: [a for a in blocker()]
+async_consumer = lambda: (a for a in blocker())
+
+print(timeit(forced_consumer, number=1))
+print(timeit(async_consumer, number=1))
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+1.00108599663
+1.09672546387e-05
+</pre></code></p>
+<p>Here we start to see the beginning of the power of generators in
+the we can pass around side-effectful, possibly blocking code to
+functions which can operate on their effects but without forcing
+the generators. Operating on data in a generally <strong>lazy</strong> manner.</p>
+<pre><code class="python">
+from time import sleep, time
+
+def counter():
+    for i in xrange(5):
+        sleep(0.2)
+        yield i
+
+def doubler(x):
+    for j in x:
+        yield j
+        yield j
+
+def squarer(x):
+    for k in x:
+        yield k**2 
+
+def printer(x):
+    tic = time()
+    for l in x:
+        print('%.2f %s' % (time() - tic, l))
+
+pipeline = printer(doubler(counter()))
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+0.20 0
+0.20 0
+0.40 1
+0.40 1
+0.60 2
+0.60 2
+0.80 3
+0.80 3
+1.00 4
+1.00 4
+</pre></code></p>
+<h2 id="generator-expressions">Generator Expressions</h2>
+<pre><code class="python">x = (a for a in [1,2,3]) # generator
+y = [a for a in [1,2,3]] # list comprehension
+z = {a for a in [1,2,3]} # set comprehension
+
+print(type(x))
+print(type(y))
+
+print('Commong Gotcha', x == y)
+
+for x,y in zip(x,y):
+    print(x,y)
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+&lt;type 'generator'&gt;
+&lt;type 'list'&gt;
+Commong Gotcha False
+1 1
+2 2
+3 3
+</pre></code></p>
+<p>For functions that take a single argument, a generator expression
+can be passed in without extra parenthesis. For multiple argument
+functions they are still required.</p>
+<pre><code class="python"># Not required
+print( sum(x*x for x in range(10)) )
+
+# Required
+print( map(lambda x: x+1, (a for a  in range(5))) )
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+285
+[1, 2, 3, 4, 5]
+</pre></code></p>
+<h2 id="concurrent-list-comprehensions">Concurrent List Comprehensions</h2>
+<h2 id="itertools">Itertools</h2>
+<p>For example a infinite list can be constructed and sliced using
+itertools methods.</p>
+<pre><code class="python">from itertools import count, islice
+
+integers = count()
+slice = islice(integers, 10)
+print( list(slice) )
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+</pre></code></p>
+<h2 id="generator-schedules-2">Generator Schedules (2)</h2>
+<p>The important concept in studying generators is that they execute
+through blocks of code on a schedule. We see hints of it
+becoming powerful control flow system. More of this later when we
+study coroutines.</p>
+<pre><code class="python">
+def generator():
+    print('[Inside] Hello from inside')
+    yield
+    print('[Inside] hello again from inside')
+    yield
+
+a = generator()
+print('[Outside] Hello from outside')
+a.next()
+print('[Outside] Hello again outside')
+a.next()
+</pre>
+
+<p></code>
+<pre><code class="python">
+[Outside] Hello from outside
+[Inside] Hello from inside
+[Outside] Hello again outside
+[Inside] hello again from inside
+</pre></code></p>
+<p>Or in this example, a "parallel" executor.</p>
+<pre><code class="python">
+from itertools import izip
+
+def generator(name):
+    print('[%s] task 1' % name)
+    yield
+    print('[%s] task 2' % name)
+    yield
+
+# Run tasks in "parallel"
+t1 = generator('foo')
+t2 = generator('bar')
+
+for t in izip(t1,t2):
+    print('[Scheduler] Switching')
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+[foo] task 1
+[bar] task 1
+[Scheduler] Switching
+[foo] task 2
+[bar] task 2
+[Scheduler] Switching
+</pre></code></p>
+<h2 id="context-managers">Context Managers</h2>
+<h2 id="generator-internals">Generator Internals</h2>
+<pre><code class="python">from sys import _getframe
+
+def gen():
+    yield
+    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    yield
+    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    yield
+    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+
+def call():
+    a = gen()
+    a.next()
+    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    a.next()
+    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    a.next()
+    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+
+call()
+</pre>
+
+<p></code>
+<pre><code class="python">
+frame 27413776 parentframe 26971040
+frame 27053840 parentframe 27413776
+frame 27413776 parentframe 26971040
+frame 27053840 parentframe 27413776
+frame 27413776 parentframe 26971040
+</pre></code></p>
+<pre><code class="python">from dis import dis
+
+def gen():
+    yield
+
+gr = gen()
+
+def call():
+    gr.next()
+    gr.next()
+
+dis(call)
+</pre>
+
+<p></code>
+<pre><code class="python">
+ 10           0 LOAD_GLOBAL              0 (gr)
+              3 LOAD_ATTR                1 (next)
+              6 CALL_FUNCTION            0
+              9 POP_TOP           <br />
+</p>
+<p>11          10 LOAD_GLOBAL              0 (gr)
+             13 LOAD_ATTR                1 (next)
+             16 CALL_FUNCTION            0
+             19 POP_TOP           <br />
+             20 LOAD_CONST               0 (None)
+             23 RETURN_VALUE      <br />
+</pre></code></p>
+<h1 id="coroutines">Coroutines</h1>
+<h2 id="send">send</h2>
+<h2 id="next">next</h2>
+<h2 id="throw">throw</h2>
+<h2 id="close">close</h2>
+<h2 id="trampoline-scheduler">Trampoline Scheduler</h2>
+<h2 id="pep-380">Pep 380</h2>
+<p><a href="Pep 380 Proposal">http://www.python.org/dev/peps/pep-0380/</a></p>
+</div>
+</body>
+</html>
