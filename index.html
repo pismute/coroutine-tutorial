@@ -138,8 +138,8 @@
 <li><a href="#comprehensions">Comprehensions</a><ul>
 <li><a href="#list-comprehensions">List Comprehensions</a><ul>
 <li><a href="#guarded-comprehensions">Guarded comprehensions</a></li>
-<li><a href="#compound-comprehensions">Compound Comprehensions.</a></li>
-<li><a href="#side-effectful-comprehension">Side effectful comprehension.</a></li>
+<li><a href="#compound-comprehensions">Compound Comprehensions</a></li>
+<li><a href="#side-effectful-comprehension">Side effectful comprehension</a></li>
 </ul>
 </li>
 <li><a href="#dictionary-comprehensions">Dictionary Comprehensions</a></li>
@@ -202,7 +202,7 @@ print([a for a in xrange(8) if a &gt; 3 and a != 4])
 [4, 5, 6, 7]
 [5, 6, 7]
 </pre></code></p>
-<h3 id="compound-comprehensions">Compound Comprehensions.</h3>
+<h3 id="compound-comprehensions">Compound Comprehensions</h3>
 <p>List comprehensions can compounded to traverse multiple
 iterators. This generally considered bad practice as it can
 produce very complex code.</p>
@@ -232,7 +232,7 @@ print( [[row[i] for row in matrix] for i in range(4)] )
 <pre><code class="python">
 [[1, 5, 9], [2, 6, 10], [3, 7, 11], [4, 8, 12]]
 </pre></code></p>
-<h3 id="side-effectful-comprehension">Side effectful comprehension.</h3>
+<h3 id="side-effectful-comprehension">Side effectful comprehension</h3>
 <p>Comprehensions can also execute arbitrary side effects anywhere
 in their construction. Again, also considered bad practice in
 most sane scenarios.</p>
@@ -413,8 +413,8 @@ print(filter(lambda x: x&gt;3, b))
 
 <p></code>
 <pre><code class="python">
-&lt;listiterator object at 0x1975c90&gt;
-&lt;IteratorExample object at 0x1975c10&gt;
+&lt;listiterator object at 0x13f8c90&gt;
+&lt;IteratorExample object at 0x13f8c10&gt;
 [0, 1, 0, 1, 0]
 [0, 1, 4, 9, 16]
 False
@@ -551,20 +551,22 @@ for index, value in enumerate(lst):
 their <strong>schedule</strong> and their <strong>values</strong>. Both are controlled by
 the keyword <code>yield</code>.  Ostensibly a generator is a function that
 when started will produce a scheduled sequence of values which
-can be lazily evaluated.</p>
+can be lazily referenced.</p>
 <p>The <code>yield</code> is often confusing to newcomers because it does two
 actions, it suspends execution of the generator and
-simultaneously returns a value. When the generator is invoked
-again it resumes execution. There is also no restriction on the
-number of yield statements in a generator, in this sense they are
-analogous to a the <code>return</code>, but this comparison is somewhat
-misleading because they are fundamentally different actions.</p>
-<p>A generator is special case of the more general type of
+simultaneously returns a value ( possibly <code>None</code> ). When the
+generator is invoked again it resumes execution. There is also no
+restriction on the number of yield statements in a generator, in
+this sense they are analogous to a the <code>return</code>, but this
+comparison is somewhat misleading because they are fundamentally
+different actions. A return statement is a statement, while a
+yield is an expression.</p>
+<p>A generator is a special case of the more general type of
 structures known as asymmetric coroutines.  The distinction
 between a coroutine and a generator is that a coroutine can
 accept further arguments after it has been invoked, whereas a
-generator cannot. We'll cover these later. For now, here's a
-simple example:</p>
+generator cannot. We'll cover coroutines later. For now, here's 
+a simple example of a generator:</p>
 <pre><code class="python">def generator():
     yield 'a'
     yield 'b'
@@ -688,8 +690,8 @@ print(timeit(async_consumer, number=1))
 
 <p></code>
 <pre><code class="python">
-1.00108599663
-1.09672546387e-05
+1.0001039505
+2.50339508057e-05
 </pre></code></p>
 <p>Here we start to see the beginning of the power of generators in
 the we can pass around side-effectful, possibly blocking code to
@@ -870,11 +872,11 @@ call()
 
 <p></code>
 <pre><code class="python">
-frame 27413776 parentframe 26971040
-frame 27053840 parentframe 27413776
-frame 27413776 parentframe 26971040
-frame 27053840 parentframe 27413776
-frame 27413776 parentframe 26971040
+frame 21221712 parentframe 21619280
+frame 21615744 parentframe 21221712
+frame 21221712 parentframe 21619280
+frame 21615744 parentframe 21221712
+frame 21221712 parentframe 21619280
 </pre></code></p>
 <pre><code class="python">from dis import dis
 
