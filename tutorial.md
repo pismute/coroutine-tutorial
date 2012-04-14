@@ -363,8 +363,8 @@ generator is invoked again it resumes execution. There is also no
 restriction on the number of yield statements in a generator, in
 this sense they are analogous to a the ``return``, but this
 comparison is somewhat misleading because they are fundamentally
-different actions. A return statement is a statement, while a
-yield is an expression.
+different actions. A return is a statement, while a yield is an 
+expression.
 
 A generator is a special case of the more general type of
 structures known as asymmetric coroutines.  The distinction
@@ -385,16 +385,33 @@ for x in generator():
 ]]]
 [[[end]]]
 
+To illustrate the vast difference between a yield and a return,
+lets embed yield expressions in a variety of weird contexts, just
+to illustrate a point.
+
+[[[cog
+def weird():
+    { (yield 'foo'), (yield 'bar') }
+
+    [(yield x) for x in [1,2,3]]
+
+    # more on this later
+    ret1  = (yield 'fizz')
+    yield ret1
+
+print(list(a for a in weird()))
+]]]
+[[[end]]]
+
 ## Generator Schedules (1)
 
 Lets take a deeper look inside a timed schedule. In this example
 we see that the generator "returns" its results on a 0.1 second
 interval. The iterator, in turn, returns its results in one large
-lump at 1 second ( ``10 x 0.1s`` )s``.
+lump at 1 second ( ``10 x 0.1s`` ).
 
 [[[cog
 import time
-from timeit import timeit
 from itertools import izip
 
 def show_schedule(stream):
@@ -481,7 +498,7 @@ from time import sleep, time
 
 def counter():
     for i in xrange(5):
-        sleep(0.2)
+        sleep(0.1)
         yield i
 
 def doubler(x):
@@ -606,20 +623,20 @@ from sys import _getframe
 
 def gen():
     yield
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('genframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     yield
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('genframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     yield
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('genframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
 
 def call():
     a = gen()
     a.next()
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('callframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     a.next()
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('callframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     a.next()
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('callframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
 
 call()
 ]]]

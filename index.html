@@ -413,8 +413,8 @@ print(filter(lambda x: x&gt;3, b))
 
 <p></code>
 <pre><code class="python">
-&lt;listiterator object at 0x13f8c90&gt;
-&lt;IteratorExample object at 0x13f8c10&gt;
+&lt;listiterator object at 0x10f5510&gt;
+&lt;IteratorExample object at 0x10f5490&gt;
 [0, 1, 0, 1, 0]
 [0, 1, 4, 9, 16]
 False
@@ -559,8 +559,8 @@ generator is invoked again it resumes execution. There is also no
 restriction on the number of yield statements in a generator, in
 this sense they are analogous to a the <code>return</code>, but this
 comparison is somewhat misleading because they are fundamentally
-different actions. A return statement is a statement, while a
-yield is an expression.</p>
+different actions. A return is a statement, while a yield is an 
+expression.</p>
 <p>A generator is a special case of the more general type of
 structures known as asymmetric coroutines.  The distinction
 between a coroutine and a generator is that a coroutine can
@@ -583,13 +583,31 @@ a
 b
 c
 </pre></code></p>
+<p>To illustrate the vast difference between a yield and a return,
+lets embed yield expressions in a variety of weird contexts, just
+to illustrate a point.</p>
+<pre><code class="python">def weird():
+    { (yield 'foo'), (yield 'bar') }
+
+    [(yield x) for x in [1,2,3]]
+
+    # more on this later
+    ret1  = (yield 'fizz')
+    yield ret1
+
+print(list(a for a in weird()))
+</pre>
+
+<p></code>
+<pre><code class="python">
+['foo', 'bar', 1, 2, 3, 'fizz', None]
+</pre></code></p>
 <h2 id="generator-schedules-1">Generator Schedules (1)</h2>
 <p>Lets take a deeper look inside a timed schedule. In this example
 we see that the generator "returns" its results on a 0.1 second
 interval. The iterator, in turn, returns its results in one large
-lump at 1 second ( <code>10 x 0.1s</code> )s``.</p>
+lump at 1 second ( <code>10 x 0.1s</code> ).</p>
 <pre><code class="python">import time
-from timeit import timeit
 from itertools import izip
 
 def show_schedule(stream):
@@ -690,8 +708,8 @@ print(timeit(async_consumer, number=1))
 
 <p></code>
 <pre><code class="python">
-1.0001039505
-2.50339508057e-05
+1.0010638237
+2.78949737549e-05
 </pre></code></p>
 <p>Here we start to see the beginning of the power of generators in
 the we can pass around side-effectful, possibly blocking code to
@@ -702,7 +720,7 @@ from time import sleep, time
 
 def counter():
     for i in xrange(5):
-        sleep(0.2)
+        sleep(0.1)
         yield i
 
 def doubler(x):
@@ -725,16 +743,16 @@ pipeline = printer(doubler(counter()))
 
 <p></code>
 <pre><code class="python">
-0.20 0
-0.20 0
-0.40 1
-0.40 1
-0.60 2
-0.60 2
-0.80 3
-0.80 3
-1.00 4
-1.00 4
+0.10 0
+0.10 0
+0.20 1
+0.20 1
+0.30 2
+0.30 2
+0.40 3
+0.40 3
+0.50 4
+0.50 4
 </pre></code></p>
 <h2 id="generator-expressions">Generator Expressions</h2>
 <pre><code class="python">x = (a for a in [1,2,3]) # generator
@@ -852,31 +870,31 @@ for t in izip(t1,t2):
 
 def gen():
     yield
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('genframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     yield
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('genframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     yield
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('genframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
 
 def call():
     a = gen()
     a.next()
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('callframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     a.next()
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('callframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
     a.next()
-    print('frame', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
+    print('callframe', id(_getframe(0)), 'parentframe', id(_getframe(0).f_back))
 
 call()
 </pre>
 
 <p></code>
 <pre><code class="python">
-frame 21221712 parentframe 21619280
-frame 21615744 parentframe 21221712
-frame 21221712 parentframe 21619280
-frame 21615744 parentframe 21221712
-frame 21221712 parentframe 21619280
+callframe 18276096 parentframe 18101072
+genframe 18276592 parentframe 18276096
+callframe 18276096 parentframe 18101072
+genframe 18276592 parentframe 18276096
+callframe 18276096 parentframe 18101072
 </pre></code></p>
 <pre><code class="python">from dis import dis
 
