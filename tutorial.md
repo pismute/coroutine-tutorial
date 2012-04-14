@@ -13,14 +13,14 @@ Lets do a quick course in comprehensions, since these will be
 constantly in the examples for iterators, generators and
 coroutines.
 
-## List Comprehensions
+** List Comprehensions **
 
 List comprehensions are powerful. Rather than discuss them in
 detail, I'll just give a few examples and assume you're familiar
 with them.
 
 
-### Guarded comprehensions
+** Guarded comprehensions **
 
 List comprehensions can restrict their output by adding guards on
 to their end. These can contain arbitrarily complex logic.
@@ -31,7 +31,7 @@ print([a for a in xrange(8) if a > 3 and a != 4])
 ]]]
 [[[end]]]
 
-### Compound Comprehensions
+** Compound Comprehensions **
 
 List comprehensions can compounded to traverse multiple
 iterators. This generally considered bad practice as it can
@@ -60,7 +60,7 @@ print( [[row[i] for row in matrix] for i in range(4)] )
 ]]]
 [[[end]]]
 
-### Side effectful comprehension
+** Side effectful comprehensions **
 
 Comprehensions can also execute arbitrary side effects anywhere
 in their construction. Again, also considered bad practice in
@@ -73,7 +73,7 @@ print(lst)
 ]]]
 [[[end]]]
 
-## Dictionary Comprehensions
+** Dictionary Comprehensions **
 
 [[[cog
 dct = { a : b for a, b in [('foo', 'bar'), ('fizz', 'pop')] }
@@ -81,7 +81,7 @@ print( dct )
 ]]]
 [[[end]]]
 
-## Set Comprehensions
+** Set Comprehensions **
 
 In Python 2.7+ there are also exist set comprehensions
 comprehensions.
@@ -660,6 +660,89 @@ dis(call)
 
 # Coroutines
 
+The best way to think about coroutines is as a new type of
+control-flow structure, similar to the way you think about 
+loops or if-else statements. This is probably the biggest
+cognitive leap in understanding them.
+
+To help with this, let us consider the special cases of
+coroutines: subroutines and generators.
+
+Coroutines have ``(N, M)``:
+
+* N entry points
+* Take M inputs
+
+Subroutines have ``( N=1, M=1 )``:
+
+* 1 entry point
+* Take only one input
+
+Generators have( N, M=0 ):
+
+* N entry points
+* Take no input
+
+We see that generators are clearly as subcase of the 
+
+[[[cog
+def subroutine(x, y):
+    result = x + y
+    return result
+
+def cosubroutine():
+    x,y = (yield)
+    result = x + y
+    yield result
+
+args = (1,2)
+
+# Subroutine Style
+# ----------------
+result = subroutine(*args)
+print(result)
+
+# Coroutine Style
+# ---------------
+sub = cosubroutine()
+sub.next()              # start the coroutine
+result = sub.send(args) # send the values into it
+print(result)
+
+]]]
+[[[end]]]
+
+Generators are also trivial to implement to coroutine format. In
+fact because of the Python implementation of coroutines as
+enhanced generators they are exactly the same syntax.
+
+The one pattern that you see frequently in the above code is that
+we have an extraneous ``next()`` statement to kickstart the
+coroutine. This is superflous and can be eliminated using a
+clever decorator.
+
+
+[[[cog
+def coroutine(f):
+    def start(*args,**kwargs):
+        co = f(*args,**kwargs)
+        co.next()
+        return co
+    return start
+
+@coroutine
+def cosubroutine():
+    x,y = (yield)
+    result = x + y
+    yield result
+
+sub = cosubroutine()
+print( sub.send((1,2)) )
+
+]]]
+[[[end]]]
+
+
 ## send
 ## next
 ## throw
@@ -667,6 +750,8 @@ dis(call)
 
 ## Trampoline Scheduler
 
+## Greenlets
+
 ## Pep 380
 
-[http://www.python.org/dev/peps/pep-0380/](Pep 380 Proposal)
+[Pep 3800](http://www.python.org/dev/peps/pep-0380/)
