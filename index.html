@@ -404,8 +404,8 @@ print(filter(lambda x: x&gt;3, b))
 
 <p></code>
 <pre><code class="python">
-&lt;listiterator object at 0xceec90&gt;
-&lt;IteratorExample object at 0xceec10&gt;
+&lt;listiterator object at 0x222dc90&gt;
+&lt;IteratorExample object at 0x222dc10&gt;
 [0, 1, 0, 1, 0]
 [0, 1, 4, 9, 16]
 False
@@ -699,8 +699,8 @@ print(timeit(async_consumer, number=1))
 
 <p></code>
 <pre><code class="python">
-1.00105285645
-2.21729278564e-05
+1.00112700462
+2.47955322266e-05
 </pre></code></p>
 <p>Here we start to see the beginning of the power of generators in
 the we can pass around side-effectful, possibly blocking code to
@@ -856,6 +856,30 @@ for t in izip(t1,t2):
 [Scheduler] Switching
 </pre></code></p>
 <h2 id="context-managers">Context Managers</h2>
+<pre><code class="python">from contextlib import contextmanager
+
+@contextmanager
+def trace():
+    print('started')
+    yield
+    print('exited')
+
+with trace():
+    for i in xrange(5):
+        print(i)
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+started
+0
+1
+2
+3
+4
+exited
+</pre></code></p>
 <h2 id="generator-internals">Generator Internals</h2>
 <pre><code class="python">from sys import _getframe
 
@@ -881,11 +905,11 @@ call()
 
 <p></code>
 <pre><code class="python">
-callframe 14238576 parentframe 13848608
-genframe 13971584 parentframe 14238576
-callframe 14238576 parentframe 13848608
-genframe 13971584 parentframe 14238576
-callframe 14238576 parentframe 13848608
+callframe 36559344 parentframe 36249616
+genframe 36521456 parentframe 36559344
+callframe 36559344 parentframe 36249616
+genframe 36521456 parentframe 36559344
+callframe 36559344 parentframe 36249616
 </pre></code></p>
 <pre><code class="python">from dis import dis
 

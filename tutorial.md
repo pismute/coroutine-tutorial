@@ -616,6 +616,22 @@ for t in izip(t1,t2):
 
 ## Context Managers
 
+[[[cog
+from contextlib import contextmanager
+
+@contextmanager
+def trace():
+    print('started')
+    yield
+    print('exited')
+
+with trace():
+    for i in xrange(5):
+        print(i)
+
+]]]
+[[[end]]]
+
 ## Generator Internals
 
 [[[cog
