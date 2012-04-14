@@ -31,7 +31,7 @@ print([a for a in xrange(8) if a > 3 and a != 4])
 ]]]
 [[[end]]]
 
-### Compound Comprehensions.
+### Compound Comprehensions
 
 List comprehensions can compounded to traverse multiple
 iterators. This generally considered bad practice as it can
@@ -60,7 +60,7 @@ print( [[row[i] for row in matrix] for i in range(4)] )
 ]]]
 [[[end]]]
 
-### Side effectful comprehension.
+### Side effectful comprehension
 
 Comprehensions can also execute arbitrary side effects anywhere
 in their construction. Again, also considered bad practice in
@@ -354,22 +354,24 @@ There are two points defining characteristics of generators,
 their **schedule** and their **values**. Both are controlled by
 the keyword ``yield``.  Ostensibly a generator is a function that
 when started will produce a scheduled sequence of values which
-can be lazily evaluated.
+can be lazily referenced.
 
 The ``yield`` is often confusing to newcomers because it does two
 actions, it suspends execution of the generator and
-simultaneously returns a value. When the generator is invoked
-again it resumes execution. There is also no restriction on the
-number of yield statements in a generator, in this sense they are
-analogous to a the ``return``, but this comparison is somewhat
-misleading because they are fundamentally different actions.
+simultaneously returns a value ( possibly ``None`` ). When the
+generator is invoked again it resumes execution. There is also no
+restriction on the number of yield statements in a generator, in
+this sense they are analogous to a the ``return``, but this
+comparison is somewhat misleading because they are fundamentally
+different actions. A return statement is a statement, while a
+yield is an expression.
 
-A generator is special case of the more general type of
+A generator is a special case of the more general type of
 structures known as asymmetric coroutines.  The distinction
 between a coroutine and a generator is that a coroutine can
 accept further arguments after it has been invoked, whereas a
-generator cannot. We'll cover these later. For now, here's a
-simple example:
+generator cannot. We'll cover coroutines later. For now, here's 
+a simple example of a generator:
 
 [[[cog
 def generator():
