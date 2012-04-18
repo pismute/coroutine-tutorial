@@ -75,6 +75,9 @@ print(lst)
 
 ** Dictionary Comprehensions **
 
+
+In Python 2.7+ you can write comprehensions over dictionaries.
+
 [[[cog
 dct = { a : b for a, b in [('foo', 'bar'), ('fizz', 'pop')] }
 print( dct )
@@ -83,8 +86,7 @@ print( dct )
 
 ** Set Comprehensions **
 
-In Python 2.7+ there are also exist set comprehensions
-comprehensions.
+In Python 2.7+ you can also write comprehensions over sete.
 
 [[[cog
 print({a for a in [1,1,2,3]})
@@ -279,8 +281,9 @@ print( sorted(ages) )
 ## Callable Iterators
 
 The little known other syntax for ``iter`` takes two arguments, a
-callable and a sentinel. The callable is called until sentinel
-it equals the sentinel. This a ``callable-iterator``.
+callable and a sentinel. The callable is repeatedly called until 
+sentinel it equals ( ``==`` ) the sentinel. This a
+``callable-iterator``.
 
 [[[cog
 
@@ -448,7 +451,8 @@ show_schedule( iterator )
 ## Forcing a Generator
 
 **Forcing** a generator causes it to be consumed in its entirety at a
-given time. This is is potentially a blocking operation.
+given time. This is is potentially a blocking operation and will
+force all the side-effects of the generator to bubble up.
 
 One of the most common ways of forcing a generator is to cast it
 into a list or list comprehension.
@@ -506,10 +510,6 @@ def doubler(x):
         yield j
         yield j
 
-def squarer(x):
-    for k in x:
-        yield k**2 
-
 def printer(x):
     tic = time()
     for l in x:
@@ -522,32 +522,37 @@ pipeline = printer(doubler(counter()))
 
 ## Generator Expressions
 
+A common mistake is to compare generator expressions with list
+comprehensions. In the case of a generator expression the
+operator ``==`` will simply default to comparing the memory
+pointers of the two generators in question, i.e 
+``a == b = id(a) == id(b)``.
+
 [[[cog
-x = (a for a in [1,2,3]) # generator
-y = [a for a in [1,2,3]] # list comprehension
-z = {a for a in [1,2,3]} # set comprehension
+x = (a for a in [1,2,3]) # generator expression
+y = (b for b in [1,2,3]) # generator expression
+z = [c for c in [1,2,3]] # list comprehension
 
 print(type(x))
-print(type(y))
+print(type(z))
 
-print('Commong Gotcha', x == y)
-
-for x,y in zip(x,y):
-    print(x,y)
+print('Common Gotcha', x == y)
+print('Common Gotcha', x == z)
+print(list(x) == list(y))
 
 ]]]
 [[[end]]]
 
 For functions that take a single argument, a generator expression
 can be passed in without extra parenthesis. For multiple argument
-functions they are still required.
+functions they are still require
 
 [[[cog
 # Not required
 print( sum(x*x for x in range(10)) )
 
 # Required
-print( map(lambda x: x+1, (a for a  in range(5))) )
+print( map(lambda x: x+1, (a for a in xrange(5))) )
 
 ]]]
 [[[end]]]
@@ -556,8 +561,14 @@ print( map(lambda x: x+1, (a for a  in range(5))) )
 
 ## Itertools
 
-For example a infinite list can be constructed and sliced using
-itertools methods.
+Inside the standard library there is a very powerful library
+called ``itertools`` which contains a variety of utilities
+dealing with iterators and generators. I can't hope to possibly
+cover all the use cases, refer to Doug Hellemmans excellent
+description of the library instead.
+
+But to just give you a taste of its power, lets infinite list can
+be constructed and sliced usings itertools methods.
 
 [[[cog
 from itertools import count, islice
@@ -574,7 +585,7 @@ print( list(slice) )
 The important concept in studying generators is that they execute
 through blocks of code on a schedule. We see hints of it
 becoming powerful control flow system. More of this later when we
-study coroutines.
+look at coroutines.
 
 [[[cog
 
@@ -615,6 +626,13 @@ for t in izip(t1,t2):
 [[[end]]]
 
 ## Context Managers
+
+One curious use case for generators is to provide a terse syntax
+for creating context managers. In this case the
+``@contextmanager`` decorator exectes the side effects before
+the yield block as the ``__enter__`` method in the context
+manager. The same idea with the code after the yield, it
+corresponds to the cleanup invoked in the ``__exit__`` method.
 
 [[[cog
 from contextlib import contextmanager
@@ -694,12 +712,137 @@ Subroutines have ``( N=1, M=1 )``:
 * 1 entry point
 * Take only one input
 
-Generators have( N, M=0 ):
+Generators have ``( N, M=0 )``:
 
 * N entry points
 * Take no input
 
-We see that generators are clearly as subcase of the 
+## send
+
+[[[cog
+
+def recv1():
+    value = (yield)
+    yield value
+
+def recv2():
+    yield (yield) + 1
+
+r1 = recv1()
+print( r1.next() )
+print( r1.send('Hi') )
+
+r2 = recv2()
+print( r2.next() )
+print( r2.send(1) )
+
+]]]
+[[[end]]]
+
+## next
+
+The observant reader will notice that the distinction between
+send and next are actually the same operation. Indeed ``next`` is
+in fact functionally equivelant to ``send(None)``. 
+
+[[[cog
+def recv():
+    yield 1
+    yield 2
+
+r = recv()
+print( r.next() )
+print( r.next() )
+
+r = recv()
+print( r.send(None) )
+print( r.send(None) )
+
+r = recv()
+print( r.next() )
+print( r.send('ignored as well') )
+]]]
+[[[end]]]
+
+
+[[[cog
+def gen():
+    yield (yield)
+
+r = gen()
+
+try:
+    r.send('i will fail!')
+except TypeError as exc:
+    print(exc)
+
+r = gen()
+r.send(None)
+print('ok')
+
+r = gen()
+r.next()
+print('ok')
+
+]]]
+[[[end]]]
+
+
+It is worth noting that you cannot send a non-null value into a
+just-started generator, you must either send ``None`` or
+equivelantly invoke ``next``. Not doing so will throw a
+``TypeError``
+
+## throw
+
+[[[cog
+def gen():
+    try:
+        yield
+    except Exception as exc:
+        print("Caught exception inside")
+
+r = gen()
+r.next()
+
+try:
+    r.throw(Exception)
+except Exception as exc:
+    print("Caught exception outside")
+
+]]]
+[[[end]]]
+
+## close
+
+Again, the observant reader will notice that ``close`` is a
+speical case of ``throw``. It simply corresponds to
+``throw(GeneratorExit)``.
+
+[[[cog
+
+def gen():
+    for i in xrange(5):
+        yield i
+
+r = gen()
+r.next()
+r.close()
+
+# -- equivelantly --
+
+gr = gen()
+
+for a in gr:
+    if a == 3:
+        gr.send(GeneratorExit)
+    else:
+        print(a)
+
+]]]
+[[[end]]]
+
+## Examples
 
 [[[cog
 def subroutine(x, y):
@@ -728,7 +871,7 @@ print(result)
 ]]]
 [[[end]]]
 
-Generators are also trivial to implement to coroutine format. In
+Generators are also trivial to implement in coroutine format. In
 fact because of the Python implementation of coroutines as
 enhanced generators they are exactly the same syntax.
 
@@ -757,12 +900,6 @@ print( sub.send((1,2)) )
 
 ]]]
 [[[end]]]
-
-
-## send
-## next
-## throw
-## close
 
 ## Trampoline Scheduler
 

@@ -161,6 +161,7 @@
 <li><a href="#next">next</a></li>
 <li><a href="#throw">throw</a></li>
 <li><a href="#close">close</a></li>
+<li><a href="#examples">Examples</a></li>
 <li><a href="#trampoline-scheduler">Trampoline Scheduler</a></li>
 <li><a href="#greenlets">Greenlets</a></li>
 <li><a href="#pep-380">Pep 380</a></li>
@@ -237,6 +238,7 @@ print(lst)
 [1, 2, 3]
 </pre></code></p>
 <p><strong> Dictionary Comprehensions </strong></p>
+<p>In Python 2.7+ you can write comprehensions over dictionaries.</p>
 <pre><code class="python">dct = { a : b for a, b in [('foo', 'bar'), ('fizz', 'pop')] }
 print( dct )
 </pre>
@@ -246,8 +248,7 @@ print( dct )
 {'foo': 'bar', 'fizz': 'pop'}
 </pre></code></p>
 <p><strong> Set Comprehensions </strong></p>
-<p>In Python 2.7+ there are also exist set comprehensions
-comprehensions.</p>
+<p>In Python 2.7+ you can also write comprehensions over sete.</p>
 <pre><code class="python">print({a for a in [1,1,2,3]})
 </pre>
 
@@ -404,8 +405,8 @@ print(filter(lambda x: x&gt;3, b))
 
 <p></code>
 <pre><code class="python">
-&lt;listiterator object at 0x222dc90&gt;
-&lt;IteratorExample object at 0x222dc10&gt;
+&lt;listiterator object at 0x26a7cd0&gt;
+&lt;IteratorExample object at 0x26a7c50&gt;
 [0, 1, 0, 1, 0]
 [0, 1, 4, 9, 16]
 False
@@ -458,8 +459,9 @@ print( sorted(ages) )
 </pre></code></p>
 <h2 id="callable-iterators">Callable Iterators</h2>
 <p>The little known other syntax for <code>iter</code> takes two arguments, a
-callable and a sentinel. The callable is called until sentinel
-it equals the sentinel. This a <code>callable-iterator</code>.</p>
+callable and a sentinel. The callable is repeatedly called until 
+sentinel it equals ( <code>==</code> ) the sentinel. This a
+<code>callable-iterator</code>.</p>
 <pre><code class="python">
 count = 0
 
@@ -660,7 +662,8 @@ show_schedule( iterator )
 </pre></code></p>
 <h2 id="forcing-a-generator">Forcing a Generator</h2>
 <p><strong>Forcing</strong> a generator causes it to be consumed in its entirety at a
-given time. This is is potentially a blocking operation.</p>
+given time. This is is potentially a blocking operation and will
+force all the side-effects of the generator to bubble up.</p>
 <p>One of the most common ways of forcing a generator is to cast it
 into a list or list comprehension.</p>
 <pre><code class="python">def generator():
@@ -699,8 +702,8 @@ print(timeit(async_consumer, number=1))
 
 <p></code>
 <pre><code class="python">
-1.00112700462
-2.47955322266e-05
+1.00112390518
+2.59876251221e-05
 </pre></code></p>
 <p>Here we start to see the beginning of the power of generators in
 the we can pass around side-effectful, possibly blocking code to
@@ -718,10 +721,6 @@ def doubler(x):
     for j in x:
         yield j
         yield j
-
-def squarer(x):
-    for k in x:
-        yield k**2 
 
 def printer(x):
     tic = time()
@@ -746,17 +745,21 @@ pipeline = printer(doubler(counter()))
 0.50 4
 </pre></code></p>
 <h2 id="generator-expressions">Generator Expressions</h2>
-<pre><code class="python">x = (a for a in [1,2,3]) # generator
-y = [a for a in [1,2,3]] # list comprehension
-z = {a for a in [1,2,3]} # set comprehension
+<p>A common mistake is to compare generator expressions with list
+comprehensions. In the case of a generator expression the
+operator <code>==</code> will simply default to comparing the memory
+pointers of the two generators in question, i.e 
+<code>a == b = id(a) == id(b)</code>.</p>
+<pre><code class="python">x = (a for a in [1,2,3]) # generator expression
+y = (b for b in [1,2,3]) # generator expression
+z = [c for c in [1,2,3]] # list comprehension
 
 print(type(x))
-print(type(y))
+print(type(z))
 
-print('Commong Gotcha', x == y)
-
-for x,y in zip(x,y):
-    print(x,y)
+print('Common Gotcha', x == y)
+print('Common Gotcha', x == z)
+print(list(x) == list(y))
 
 </pre>
 
@@ -764,19 +767,18 @@ for x,y in zip(x,y):
 <pre><code class="python">
 &lt;type 'generator'&gt;
 &lt;type 'list'&gt;
-Commong Gotcha False
-1 1
-2 2
-3 3
+Common Gotcha False
+Common Gotcha False
+True
 </pre></code></p>
 <p>For functions that take a single argument, a generator expression
 can be passed in without extra parenthesis. For multiple argument
-functions they are still required.</p>
+functions they are still require</p>
 <pre><code class="python"># Not required
 print( sum(x*x for x in range(10)) )
 
 # Required
-print( map(lambda x: x+1, (a for a  in range(5))) )
+print( map(lambda x: x+1, (a for a in xrange(5))) )
 
 </pre>
 
@@ -787,8 +789,13 @@ print( map(lambda x: x+1, (a for a  in range(5))) )
 </pre></code></p>
 <h2 id="concurrent-list-comprehensions">Concurrent List Comprehensions</h2>
 <h2 id="itertools">Itertools</h2>
-<p>For example a infinite list can be constructed and sliced using
-itertools methods.</p>
+<p>Inside the standard library there is a very powerful library
+called <code>itertools</code> which contains a variety of utilities
+dealing with iterators and generators. I can't hope to possibly
+cover all the use cases, refer to Doug Hellemmans excellent
+description of the library instead.</p>
+<p>But to just give you a taste of its power, lets infinite list can
+be constructed and sliced usings itertools methods.</p>
 <pre><code class="python">from itertools import count, islice
 
 integers = count()
@@ -805,7 +812,7 @@ print( list(slice) )
 <p>The important concept in studying generators is that they execute
 through blocks of code on a schedule. We see hints of it
 becoming powerful control flow system. More of this later when we
-study coroutines.</p>
+look at coroutines.</p>
 <pre><code class="python">
 def generator():
     print('[Inside] Hello from inside')
@@ -856,6 +863,12 @@ for t in izip(t1,t2):
 [Scheduler] Switching
 </pre></code></p>
 <h2 id="context-managers">Context Managers</h2>
+<p>One curious use case for generators is to provide a terse syntax
+for creating context managers. In this case the
+<code>@contextmanager</code> decorator exectes the side effects before
+the yield block as the <code>__enter__</code> method in the context
+manager. The same idea with the code after the yield, it
+corresponds to the cleanup invoked in the <code>__exit__</code> method.</p>
 <pre><code class="python">from contextlib import contextmanager
 
 @contextmanager
@@ -905,11 +918,11 @@ call()
 
 <p></code>
 <pre><code class="python">
-callframe 36559344 parentframe 36249616
-genframe 36521456 parentframe 36559344
-callframe 36559344 parentframe 36249616
-genframe 36521456 parentframe 36559344
-callframe 36559344 parentframe 36249616
+callframe 41574848 parentframe 41228160
+genframe 41575344 parentframe 41574848
+callframe 41574848 parentframe 41228160
+genframe 41575344 parentframe 41574848
+callframe 41574848 parentframe 41228160
 </pre></code></p>
 <pre><code class="python">from dis import dis
 
@@ -956,12 +969,151 @@ coroutines: subroutines and generators.</p>
 <li>1 entry point</li>
 <li>Take only one input</li>
 </ul>
-<p>Generators have( N, M=0 ):</p>
+<p>Generators have <code>( N, M=0 )</code>:</p>
 <ul>
 <li>N entry points</li>
 <li>Take no input</li>
 </ul>
-<p>We see that generators are clearly as subcase of the </p>
+<h2 id="send">send</h2>
+<pre><code class="python">
+def recv1():
+    value = (yield)
+    yield value
+
+def recv2():
+    yield (yield) + 1
+
+r1 = recv1()
+print( r1.next() )
+print( r1.send('Hi') )
+
+r2 = recv2()
+print( r2.next() )
+print( r2.send(1) )
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+None
+Hi
+None
+2
+</pre></code></p>
+<h2 id="next">next</h2>
+<p>The observant reader will notice that the distinction between
+send and next are actually the same operation. Indeed <code>next</code> is
+in fact functionally equivelant to <code>send(None)</code>. </p>
+<pre><code class="python">def recv():
+    yield 1
+    yield 2
+
+r = recv()
+print( r.next() )
+print( r.next() )
+
+r = recv()
+print( r.send(None) )
+print( r.send(None) )
+
+r = recv()
+print( r.next() )
+print( r.send('ignored as well') )
+</pre>
+
+<p></code>
+<pre><code class="python">
+1
+2
+1
+2
+1
+2
+</pre></code></p>
+<pre><code class="python">def gen():
+    yield (yield)
+
+r = gen()
+
+try:
+    r.send('i will fail!')
+except TypeError as exc:
+    print(exc)
+
+r = gen()
+r.send(None)
+print('ok')
+
+r = gen()
+r.next()
+print('ok')
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+can't send non-None value to a just-started generator
+ok
+ok
+</pre></code></p>
+<p>It is worth noting that you cannot send a non-null value into a
+just-started generator, you must either send <code>None</code> or
+equivelantly invoke <code>next</code>. Not doing so will throw a
+<code>TypeError</code></p>
+<h2 id="throw">throw</h2>
+<pre><code class="python">def gen():
+    try:
+        yield
+    except Exception as exc:
+        print("Caught exception inside")
+
+r = gen()
+r.next()
+
+try:
+    r.throw(Exception)
+except Exception as exc:
+    print("Caught exception outside")
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+Caught exception inside
+Caught exception outside
+</pre></code></p>
+<h2 id="close">close</h2>
+<p>Again, the observant reader will notice that <code>close</code> is a
+speical case of <code>throw</code>. It simply corresponds to
+<code>throw(GeneratorExit)</code>.</p>
+<pre><code class="python">
+def gen():
+    for i in xrange(5):
+        yield i
+
+r = gen()
+r.next()
+r.close()
+
+# -- equivelantly --
+
+gr = gen()
+
+for a in gr:
+    if a == 3:
+        gr.send(GeneratorExit)
+    else:
+        print(a)
+
+</pre>
+
+<p></code>
+<pre><code class="python">
+0
+1
+2
+</pre></code></p>
+<h2 id="examples">Examples</h2>
 <pre><code class="python">def subroutine(x, y):
     result = x + y
     return result
@@ -992,7 +1144,7 @@ print(result)
 3
 3
 </pre></code></p>
-<p>Generators are also trivial to implement to coroutine format. In
+<p>Generators are also trivial to implement in coroutine format. In
 fact because of the Python implementation of coroutines as
 enhanced generators they are exactly the same syntax.</p>
 <p>The one pattern that you see frequently in the above code is that
@@ -1021,10 +1173,6 @@ print( sub.send((1,2)) )
 <pre><code class="python">
 3
 </pre></code></p>
-<h2 id="send">send</h2>
-<h2 id="next">next</h2>
-<h2 id="throw">throw</h2>
-<h2 id="close">close</h2>
 <h2 id="trampoline-scheduler">Trampoline Scheduler</h2>
 <h2 id="greenlets">Greenlets</h2>
 <h2 id="pep-380">Pep 380</h2>
