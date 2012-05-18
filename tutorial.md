@@ -1,13 +1,13 @@
 [TOC]
 
-# Core
+# Prelude
 
 Generators and coroutines are a some of the most powerful and
 often misunderstood structures in modern Python. Even though both
 have been around since Python 2.5, there is very little
 good information on their advanced usage.
 
-# Comprehensions
+## Comprehensions
 
 Lets do a quick course in comprehensions, since these will be
 constantly in the examples for iterators, generators and
@@ -93,7 +93,7 @@ print({a for a in [1,1,2,3]})
 ]]]
 [[[end]]]
 
-# Iterators
+## Iterators
 
 An iterator is something that can, well be iterated over. Many
 operations can be phrased in the language of iteration and many
@@ -137,8 +137,6 @@ except StopIteration:
 
 ]]]
 [[[end]]]
-
-## ``iter``
 
 The builtin function ``iter`` is the prefix form of
 ``obj.__iter__()``. It returns the interable interface of the object
@@ -317,7 +315,8 @@ iter(raw_input, 'done')
 ]]]
 [[[end]]]
 
-## The Many Flavors of Iterators
+There are many different iterators types built into the
+interpreter.
 
 [[[cog
 def typeof(obj):
@@ -351,7 +350,7 @@ for index, value in enumerate(lst):
 [[[end]]]
 
 
-# Generators
+## Generators
 
 There are two points defining characteristics of generators,
 their **schedule** and their **values**. Both are controlled by
@@ -556,8 +555,6 @@ print( map(lambda x: x+1, (a for a in xrange(5))) )
 
 ]]]
 [[[end]]]
-
-## Concurrent List Comprehensions
 
 ## Itertools
 
@@ -901,10 +898,224 @@ print( sub.send((1,2)) )
 ]]]
 [[[end]]]
 
-## Trampoline Scheduler
-
-## Greenlets
-
 ## Pep 380
 
-[Pep 3800](http://www.python.org/dev/peps/pep-0380/)
+[Pep 380](http://www.python.org/dev/peps/pep-0380/)
+
+# Greenlets
+
+## switch
+
+[[[cog
+from greenlet import greenlet
+
+def test1():
+    print('First')
+    gr2.switch()
+    print('Third')
+    gr2.switch()
+
+def test2():
+    print('Second')
+    gr1.switch()
+    print('Fourth')
+    gr1.switch()
+
+gr1 = greenlet(test1)
+gr2 = greenlet(test2)
+gr1.switch()
+print('Done')
+]]]
+[[[end]]]
+
+[[[cog
+from greenlet import greenlet
+
+def test1(i):
+    print('First', i)
+    i = gr2.switch(i+1)
+    print('Third', i)
+    i = gr2.switch(i+1)
+
+def test2(j):
+    print('Second', j)
+    j = gr1.switch(j+1)
+    print('Fourth', j)
+    j = gr1.switch()
+
+gr1 = greenlet(test1)
+gr2 = greenlet(test2)
+gr1.switch(0)
+print('Done')
+]]]
+[[[end]]]
+
+[[[cog
+def pinger():
+    for i in xrange(5):
+        send = i
+        recv = gr2.switch(send)
+        print('ping',recv)
+
+def ponger(u):
+    for i in xrange(5):
+        send = i
+        recv = gr1.switch(send)
+        print('pong',recv)
+
+gr1 = greenlet(pinger)
+gr2 = greenlet(ponger)
+gr1.switch()
+print('Done')
+]]]
+[[[end]]]
+
+## getcurrent
+
+
+[[[cog
+from greenlet import greenlet
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def generator():
+    yields('fizzpop')
+    yields('snazzleberry')
+
+gr1 = greenlet(generator)
+
+print( gr1.switch() )
+print( gr1.switch() )
+]]]
+[[[end]]]
+
+## throw
+
+[[[cog
+from greenlet import greenlet, GreenletExit
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def test1():
+    print("Inside")
+    greenlet.getcurrent().parent.switch()
+    print("Never reached!")
+
+gr1 = greenlet(test1)
+gr1.switch()
+gr1.throw(GreenletExit)
+gr1.switch()
+print('Done')
+]]]
+[[[end]]]
+
+[[[cog
+from greenlet import greenlet
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def using_greenlet():
+    x = yields()
+    print('Greenlet ', x)
+    y = yields()
+    print('Greenlet ', y)
+    yields()
+
+gr = greenlet(using_greenlet)
+gr.switch()
+gr.switch(1)
+gr.switch(2)
+
+def using_coroutine():
+    x = (yield)
+    print('Coroutine ', x)
+    y = (yield)
+    print('Coroutine ', y)
+    yield
+
+co = using_coroutine()
+co.next()
+co.send(1)
+co.send(2)
+]]]
+[[[end]]]
+
+## Schedulers
+
+[[[cog
+from itertools import cycle, islice
+from greenlet import greenlet
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def alive(gr):
+    return not gr.dead
+
+def fair(*tasks):
+    for task in tasks:
+        yield task
+
+def roundrobin(*tasks):
+    pending = len(tasks)
+    nexts = cycle(iter(it).next for it in tasks)
+
+    while pending:
+        try:
+            for next in nexts:
+                yield next()
+        except StopIteration:
+            pending -= 1
+            nexts = cycle(islice(nexts, pending))
+
+def foo():
+    print('Running in foo')
+    yields(0)
+    print('Emplict context switch to foo again')
+
+def bar():
+    print('Emplict context to bar')
+    yields(0)
+    print('Implicit switch back to bar')
+
+def join(scheduler, fs):
+    greenlets = set(greenlet(f) for f in fs)
+
+    while greenlets:
+        for gr in scheduler(*greenlets):
+            if not gr.dead:
+                gr.switch()
+            else:
+                greenlets.remove(gr)
+
+join(fair, [foo, bar])
+]]]
+[[[end]]]
+
+## Genlets
+
+## Continuations
+
+# Real World Applications
+
+## Data Pipelining
+
+## Trampoline Scheduler
+
+## Monads
+
+## Gevent
+
+At this point you might want to read
+[Gevent For the Working Python Developer](https://github.com/sdiehl/gevent-tutorial)
+ it covers Gevent which is based on top of greenlet and provides a
+collection of higher order functions and a data structures for dealing
+with Gevent driven program flow.
+

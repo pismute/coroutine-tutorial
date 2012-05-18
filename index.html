@@ -134,22 +134,17 @@
 
 <div class="toc">
 <ul>
-<li><a href="#core">Core</a></li>
+<li><a href="#prelude">Prelude</a><ul>
 <li><a href="#comprehensions">Comprehensions</a></li>
-<li><a href="#iterators">Iterators</a><ul>
-<li><a href="#iter">iter</a></li>
+<li><a href="#iterators">Iterators</a></li>
 <li><a href="#custom-iterables">Custom Iterables</a></li>
 <li><a href="#sortable-iterables">Sortable Iterables</a></li>
 <li><a href="#callable-iterators">Callable Iterators</a></li>
-<li><a href="#the-many-flavors-of-iterators">The Many Flavors of Iterators</a></li>
 <li><a href="#enumerate">Enumerate</a></li>
-</ul>
-</li>
-<li><a href="#generators">Generators</a><ul>
+<li><a href="#generators">Generators</a></li>
 <li><a href="#generator-schedules-1">Generator Schedules (1)</a></li>
 <li><a href="#forcing-a-generator">Forcing a Generator</a></li>
 <li><a href="#generator-expressions">Generator Expressions</a></li>
-<li><a href="#concurrent-list-comprehensions">Concurrent List Comprehensions</a></li>
 <li><a href="#itertools">Itertools</a></li>
 <li><a href="#generator-schedules-2">Generator Schedules (2)</a></li>
 <li><a href="#context-managers">Context Managers</a></li>
@@ -162,19 +157,33 @@
 <li><a href="#throw">throw</a></li>
 <li><a href="#close">close</a></li>
 <li><a href="#examples">Examples</a></li>
-<li><a href="#trampoline-scheduler">Trampoline Scheduler</a></li>
-<li><a href="#greenlets">Greenlets</a></li>
 <li><a href="#pep-380">Pep 380</a></li>
+</ul>
+</li>
+<li><a href="#greenlets">Greenlets</a><ul>
+<li><a href="#switch">switch</a></li>
+<li><a href="#getcurrent">getcurrent</a></li>
+<li><a href="#throw_1">throw</a></li>
+<li><a href="#schedulers">Schedulers</a></li>
+<li><a href="#genlets">Genlets</a></li>
+<li><a href="#continuations">Continuations</a></li>
+</ul>
+</li>
+<li><a href="#real-world-applications">Real World Applications</a><ul>
+<li><a href="#data-pipelining">Data Pipelining</a></li>
+<li><a href="#trampoline-scheduler">Trampoline Scheduler</a></li>
+<li><a href="#monads">Monads</a></li>
+<li><a href="#gevent">Gevent</a></li>
 </ul>
 </li>
 </ul>
 </div>
-<h1 id="core">Core</h1>
+<h1 id="prelude">Prelude</h1>
 <p>Generators and coroutines are a some of the most powerful and
 often misunderstood structures in modern Python. Even though both
 have been around since Python 2.5, there is very little
 good information on their advanced usage.</p>
-<h1 id="comprehensions">Comprehensions</h1>
+<h2 id="comprehensions">Comprehensions</h2>
 <p>Lets do a quick course in comprehensions, since these will be
 constantly in the examples for iterators, generators and
 coroutines.</p>
@@ -256,7 +265,7 @@ print( dct )
 <pre><code class="python">
 set([1, 2, 3])
 </pre></code></p>
-<h1 id="iterators">Iterators</h1>
+<h2 id="iterators">Iterators</h2>
 <p>An iterator is something that can, well be iterated over. Many
 operations can be phrased in the language of iteration and many
 Python builtins consume iterables as their primary arguments. Its
@@ -314,7 +323,6 @@ except StopIteration:
 3
 done
 </pre></code></p>
-<h2 id="iter"><code>iter</code></h2>
 <p>The builtin function <code>iter</code> is the prefix form of
 <code>obj.__iter__()</code>. It returns the interable interface of the object
 if it exists.</p>
@@ -405,8 +413,8 @@ print(filter(lambda x: x&gt;3, b))
 
 <p></code>
 <pre><code class="python">
-&lt;listiterator object at 0x26a7cd0&gt;
-&lt;IteratorExample object at 0x26a7c50&gt;
+&lt;listiterator object at 0x7ff92a271790&gt;
+&lt;IteratorExample object at 0x7ff92a271710&gt;
 [0, 1, 0, 1, 0]
 [0, 1, 4, 9, 16]
 False
@@ -498,7 +506,8 @@ iter(raw_input, 'done')
 <pre><code class="python">
 ['#1 SMP PREEMPT Sat Jul 9 14:57:41 CEST 2011\n']
 </pre></code></p>
-<h2 id="the-many-flavors-of-iterators">The Many Flavors of Iterators</h2>
+<p>There are many different iterators types built into the
+interpreter.</p>
 <pre><code class="python">def typeof(obj):
     print(type(obj))
 
@@ -539,7 +548,7 @@ for index, value in enumerate(lst):
 1 b
 2 c
 </pre></code></p>
-<h1 id="generators">Generators</h1>
+<h2 id="generators">Generators</h2>
 <p>There are two points defining characteristics of generators,
 their <strong>schedule</strong> and their <strong>values</strong>. Both are controlled by
 the keyword <code>yield</code>.  Ostensibly a generator is a function that
@@ -702,8 +711,8 @@ print(timeit(async_consumer, number=1))
 
 <p></code>
 <pre><code class="python">
-1.00112390518
-2.59876251221e-05
+1.00028610229
+2.28881835938e-05
 </pre></code></p>
 <p>Here we start to see the beginning of the power of generators in
 the we can pass around side-effectful, possibly blocking code to
@@ -787,7 +796,6 @@ print( map(lambda x: x+1, (a for a in xrange(5))) )
 285
 [1, 2, 3, 4, 5]
 </pre></code></p>
-<h2 id="concurrent-list-comprehensions">Concurrent List Comprehensions</h2>
 <h2 id="itertools">Itertools</h2>
 <p>Inside the standard library there is a very powerful library
 called <code>itertools</code> which contains a variety of utilities
@@ -918,11 +926,11 @@ call()
 
 <p></code>
 <pre><code class="python">
-callframe 41574848 parentframe 41228160
-genframe 41575344 parentframe 41574848
-callframe 41574848 parentframe 41228160
-genframe 41575344 parentframe 41574848
-callframe 41574848 parentframe 41228160
+callframe 24195152 parentframe 24015872
+genframe 24196512 parentframe 24195152
+callframe 24195152 parentframe 24015872
+genframe 24196512 parentframe 24195152
+callframe 24195152 parentframe 24015872
 </pre></code></p>
 <pre><code class="python">from dis import dis
 
@@ -1173,10 +1181,250 @@ print( sub.send((1,2)) )
 <pre><code class="python">
 3
 </pre></code></p>
-<h2 id="trampoline-scheduler">Trampoline Scheduler</h2>
-<h2 id="greenlets">Greenlets</h2>
 <h2 id="pep-380">Pep 380</h2>
-<p><a href="http://www.python.org/dev/peps/pep-0380/">Pep 3800</a></p>
+<p><a href="http://www.python.org/dev/peps/pep-0380/">Pep 380</a></p>
+<h1 id="greenlets">Greenlets</h1>
+<h2 id="switch">switch</h2>
+<pre><code class="python">from greenlet import greenlet
+
+def test1():
+    print('First')
+    gr2.switch()
+    print('Third')
+    gr2.switch()
+
+def test2():
+    print('Second')
+    gr1.switch()
+    print('Fourth')
+    gr1.switch()
+
+gr1 = greenlet(test1)
+gr2 = greenlet(test2)
+gr1.switch()
+print('Done')
+</pre>
+
+<p></code>
+<pre><code class="python">
+First
+Second
+Third
+Fourth
+Done
+</pre></code></p>
+<pre><code class="python">from greenlet import greenlet
+
+def test1(i):
+    print('First', i)
+    i = gr2.switch(i+1)
+    print('Third', i)
+    i = gr2.switch(i+1)
+
+def test2(j):
+    print('Second', j)
+    j = gr1.switch(j+1)
+    print('Fourth', j)
+    j = gr1.switch()
+
+gr1 = greenlet(test1)
+gr2 = greenlet(test2)
+gr1.switch(0)
+print('Done')
+</pre>
+
+<p></code>
+<pre><code class="python">
+First 0
+Second 1
+Third 2
+Fourth 3
+Done
+</pre></code></p>
+<pre><code class="python">def pinger():
+    for i in xrange(5):
+        send = i
+        recv = gr2.switch(send)
+        print('ping',recv)
+
+def ponger(u):
+    for i in xrange(5):
+        send = i
+        recv = gr1.switch(send)
+        print('pong',recv)
+
+gr1 = greenlet(pinger)
+gr2 = greenlet(ponger)
+gr1.switch()
+print('Done')
+</pre>
+
+<p></code>
+<pre><code class="python">
+ping 0
+pong 1
+ping 1
+pong 2
+ping 2
+pong 3
+ping 3
+pong 4
+ping 4
+Done
+</pre></code></p>
+<h2 id="getcurrent">getcurrent</h2>
+<pre><code class="python">from greenlet import greenlet
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def generator():
+    yields('fizzpop')
+    yields('snazzleberry')
+
+gr1 = greenlet(generator)
+
+print( gr1.switch() )
+print( gr1.switch() )
+</pre>
+
+<p></code>
+<pre><code class="python">
+fizzpop
+snazzleberry
+</pre></code></p>
+<h2 id="throw_1">throw</h2>
+<pre><code class="python">from greenlet import greenlet, GreenletExit
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def test1():
+    print("Inside")
+    greenlet.getcurrent().parent.switch()
+    print("Never reached!")
+
+gr1 = greenlet(test1)
+gr1.switch()
+gr1.throw(GreenletExit)
+gr1.switch()
+print('Done')
+</pre>
+
+<p></code>
+<pre><code class="python">
+Inside
+Done
+</pre></code></p>
+<pre><code class="python">from greenlet import greenlet
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def using_greenlet():
+    x = yields()
+    print('Greenlet ', x)
+    y = yields()
+    print('Greenlet ', y)
+    yields()
+
+gr = greenlet(using_greenlet)
+gr.switch()
+gr.switch(1)
+gr.switch(2)
+
+def using_coroutine():
+    x = (yield)
+    print('Coroutine ', x)
+    y = (yield)
+    print('Coroutine ', y)
+    yield
+
+co = using_coroutine()
+co.next()
+co.send(1)
+co.send(2)
+</pre>
+
+<p></code>
+<pre><code class="python">
+Greenlet  1
+Greenlet  2
+Coroutine  1
+Coroutine  2
+</pre></code></p>
+<h2 id="schedulers">Schedulers</h2>
+<pre><code class="python">from itertools import cycle, islice
+from greenlet import greenlet
+
+def yields(value=None):
+    g = greenlet.getcurrent()
+    return g.parent.switch(value)
+
+def alive(gr):
+    return not gr.dead
+
+def fair(*tasks):
+    for task in tasks:
+        yield task
+
+def roundrobin(*tasks):
+    pending = len(tasks)
+    nexts = cycle(iter(it).next for it in tasks)
+
+    while pending:
+        try:
+            for next in nexts:
+                yield next()
+        except StopIteration:
+            pending -= 1
+            nexts = cycle(islice(nexts, pending))
+
+def foo():
+    print('Running in foo')
+    yields(0)
+    print('Emplict context switch to foo again')
+
+def bar():
+    print('Emplict context to bar')
+    yields(0)
+    print('Implicit switch back to bar')
+
+def join(scheduler, fs):
+    greenlets = set(greenlet(f) for f in fs)
+
+    while greenlets:
+        for gr in scheduler(*greenlets):
+            if not gr.dead:
+                gr.switch()
+            else:
+                greenlets.remove(gr)
+
+join(fair, [foo, bar])
+</pre>
+
+<p></code>
+<pre><code class="python">
+Running in foo
+Emplict context to bar
+Emplict context switch to foo again
+Implicit switch back to bar
+</pre></code></p>
+<h2 id="genlets">Genlets</h2>
+<h2 id="continuations">Continuations</h2>
+<h1 id="real-world-applications">Real World Applications</h1>
+<h2 id="data-pipelining">Data Pipelining</h2>
+<h2 id="trampoline-scheduler">Trampoline Scheduler</h2>
+<h2 id="monads">Monads</h2>
+<h2 id="gevent">Gevent</h2>
+<p>At this point you might want to read
+<a href="https://github.com/sdiehl/gevent-tutorial">Gevent For the Working Python Developer</a>
+ it covers Gevent which is based on top of greenlet and provides a
+collection of higher order functions and a data structures for dealing
+with Gevent driven program flow.</p>
 </div>
 </body>
 </html>
